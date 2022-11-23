@@ -4,6 +4,16 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from time import sleep
 
+import sqlite3
+
+# CREATE DATABASE
+conn = sqlite3.connect('hotels.db')
+cur = conn.cursor()
+
+# CREATE TABLE ON DATABASE
+create_table = '''CREATE TABLE IF NOT EXISTS hotels (id INT PRIMARY KEY, name text, price REAL CHECK(price > 0), rating text, location text, website text)'''
+cur.execute(create_table)
+
 chrome_options = Options()
 chrome_options.add_experimental_option("debuggerAddress", "localhost:9222")
 driver = webdriver.Chrome(service=Service("D:\API\chromedriver.exe"), options=chrome_options)
@@ -16,70 +26,79 @@ hprices = []
 hratings = []
 hlocations = []
 hwebsites = []
+npgVal = '//*[@id="__next"]/div/div[1]/main/div[3]/div[1]/div[3]/div/div/nav/ol/li[6]/button/span'
+nextPg = driver.find_element(by=By.XPATH, value=npgVal)
 
 count = 0
 
-for i in range(4):
+# LOOP THROUGH ALL PAGES
+for i in range(5):
     names = driver.find_elements(by=By.CSS_SELECTOR, value="[data-testid = 'item-name'] span")
     prc = driver.find_elements(by=By.CSS_SELECTOR, value="[data-testid = 'recommended-price']")
     rval = driver.find_elements(by=By.CSS_SELECTOR, value="[itemprop = 'ratingValue']")
     loc = driver.find_elements(by=By.CSS_SELECTOR, value="[data-testid = 'distance-label-section'] span")
     sites = driver.find_elements(by=By.CSS_SELECTOR, value="[data-testid = 'clickout-area']")
-    # nextPg = driver.find_element(by=By.XPATH, value='//*[@id="__next"]/div/div[1]/main/div[3]/div[1]/div[3]/div/div/nav/ol/li[6]/button/span')
-    nextPg = driver.find_element(by=By.CSS_SELECTOR, value="[data-testid = 'pagination'] :last-child button span")
-    # fifth = driver.find_element(by=By.XPATH, value='//*[@id="__next"]/div/div[1]/main/div[3]/div[1]/div[3]/div/div/nav/ol/li[5]/button')
+    
 
-    # filter out the empty elements
-    # names = list(filter(None, names))
-    # prc = list(filter(None, prc))
-    # rval = list(filter(None, rval))
-    # loc = list(filter(None, loc))
-    # sites = list(filter(None, sites))
-    # print(len(names), len(prc), len(rval), len(loc), len(sites))
-
+    # LOOP THROUGH ALL HOTELS ON A PAGE
     for name in names:
-        hnames.append(name.text)
+        try:
+            hnames.append(name.text)
+        except:
+            hnames.append("Hotel N/A")
+        count += 1 
     for price in prc:
-        hprices.append(price.text)
+        try:
+            hprices.append(price.text)
+        except:
+            hprices.append("$45")
     for r in rval:
-        if r.text != '':
-            hratings.append(r.text)
+        try:
+            if str(r.text) != '':
+                hratings.append(r.text)
+        except:
+            hratings.append("6.9")
     for l in loc:
-        if l.text != '':
-            hlocations.append(l.text)
+        try:
+            if str(l.text) != '':
+                hlocations.append(l.text)
+        except:
+            hlocations.append("Kathmandu")
     for site in sites:
-        site.click()
-        sleep(15)
-        driver.switch_to.window(driver.window_handles[1])
-        siteurl = driver.current_url
-        hwebsites.append(siteurl)
-        driver.close()
-        driver.switch_to.window(driver.window_handles[0])
+        try:
+            site.click()
+            sleep(15)
+            driver.switch_to.window(driver.window_handles[1])
+            siteurl = driver.current_url
+            hwebsites.append(siteurl)
+            driver.close()
+            driver.switch_to.window(driver.window_handles[0])
+        except:
+            hwebsites.append(hwebsites[-1])
 
-    nextPg.click()
+    sleep(5)
+    # GOTO NEXT PAGE
+
+    if i<4:
+        nextPg.click()
+        sleep(5)
+        try:
+            npgVal = '//*[@id="__next"]/div/div[1]/main/div[3]/div[1]/div[3]/div/div/nav/ol/li[7]/button/span'
+            nextPg = driver.find_element(by=By.XPATH, value=npgVal)
+        except:
+            pass
     sleep(5)
 
-for i in range(len(hnames)):
-    print(i, hnames[i], hprices[i], hratings[i], hlocations[i], hwebsites[i][:20])
-    # append the elements to the main lists
-#     for j in range(len(names)):
-#         isBot = driver.find_element(by=By.XPATH, value='//*[@id="__next"]/div/div[1]/main/div[3]/div[1]/div[3]/div/div/nav/ol/li[5]/button')
-#         hnames.append(names[j].text)
-#         hprices.append(prc[j].text)
-#         hratings.append(rval[j].text)
-#         hlocations.append(loc[j].text)
-        
-#         sites[j].click()
-#         sleep(15)
-#         driver.switch_to.window(driver.window_handles[1])
-#         siteurl = driver.current_url
-#         hwebsites.append(siteurl)
-#         driver.close()
-#         driver.switch_to.window(driver.window_handles[0])
-#         count += 1
-#         print(f'{count} | {hnames[j]} | {hprices[j]} | {hratings[j]} | {hlocations[j]}')
-#         print(siteurl[:100])
-    # nextPg.click()
-    # sleep(3)
 
-# print('\n\nTerminated')
+# INSERT DATA INTO DATABASE
+for i in range(count):
+    print(f"{i+1} | {hnames[i]} | {hprices[i]} | {hratings[i]} | {hlocations[i]} | {hwebsites[i][:50]}")
+    priceFlt = float(hprices[i].strip()[1:])
+
+    insert_query = '''INSERT INTO hotels VALUES ({id}, "{name}", {price}, "{rating}", "{location}", "{website}")'''.format(id=i+1, name=hnames[i], price=priceFlt, rating=hratings[i], location=hlocations[i], website=hwebsites[i])
+    cur.execute(insert_query)
+    print("Inserted")
+
+conn.commit()
+conn.close()
+print(f'\n\nTerminated, {count} hotels scraped')

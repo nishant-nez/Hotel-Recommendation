@@ -1,14 +1,33 @@
 import sqlite3
 
 # admin credentials database
-conn = sqlite3.connect('admin.db')
+# conn = sqlite3.connect('admin.db')
+# cur = conn.cursor()
+
+# create_table = '''CREATE TABLE IF NOT EXISTS admin (id INT PRIMARY KEY, username TEXT, password TEXT)'''
+# cur.execute(create_table)
+
+# insert_first = '''INSERT INTO admin VALUES (1, 'firstuser', 'admin450')'''
+# cur.execute(insert_first)
+# insert_first = '''INSERT INTO admin VALUES (2, 'seconduser', 'admin451')'''
+# cur.execute(insert_first)
+# insert_first = '''INSERT INTO admin VALUES (3, 'thirduser', 'admin452')'''
+# cur.execute(insert_first)
+
+# sr = 'seconduser'
+# search_query = '''SELECT * FROM admin WHERE username = "{sr}"'''.format(sr=sr)
+# val = cur.execute(search_query)
+# for data in val:
+#     print(data[0], data[1], data[2])
+
+conn = sqlite3.connect('hotels.db')
 cur = conn.cursor()
 
-create_table = '''CREATE TABLE IF NOT EXISTS admin (id INT PRIMARY KEY, username TEXT, password TEXT)'''
-cur.execute(create_table)
+read_query = '''SELECT * FROM hotels'''
+val = cur.execute(read_query)
+for data in val:
+    # print(data[0], data[1], data[2], data[3], data[4], data[5][:40])
+    print(f"{data[0]} | {data[1]} | {data[2]} | {data[3]} | {data[4]} | {data[5][:40]}")
 
-insert_first = '''INSERT INTO admin VALUES (1, 'firstuser', 'admin450')'''
-cur.execute(insert_first)
-
-conn.commit()
+# conn.commit()
 conn.close()
