@@ -2,6 +2,8 @@ from hotel import Hotel
 import sqlite3
 
 def adminMenu():
+    connh = sqlite3.connect('hotels.db')
+    curh = connh.cursor()
     print("\n************************* ADMIN MENU *************************")
     print("\n")
     print("1. Add new hotel")
@@ -10,8 +12,6 @@ def adminMenu():
     print("4. Logout")
 
     choice = int(input("Enter your choice: "))
-    connh = sqlite3.connect('hotels.db')
-    curh = connh.cursor()
     if choice == 1:
         print("\nAdd details for the new hotel: ")
         name = input("Hotel name: ")
@@ -52,6 +52,8 @@ def adminMenu():
                 rating = data[3]
                 location = data[4]
                 website = data[5]
+            print("Searched Hotel: ")
+            print(f"{idval} | {name} | ${price} | {rating} | {location} | {website[:60]}")
             print(
                 "Enter new details for the hotel: (enter 'same' if the value is not to be changed: ")
             inp = input("Hotel name: ")
@@ -108,8 +110,9 @@ def adminMenu():
     elif choice == 4:
         print("Logging out...")
         exit()
+
     else:
         print("Invalid choice")
-        adminMenu()
     connh.commit()
     connh.close()
+    adminMenu()

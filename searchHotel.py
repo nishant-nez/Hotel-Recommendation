@@ -23,7 +23,7 @@ def searchHotel():
             search_comm = '''SELECT * FROM hotels'''
             querdata = curr.execute(search_comm)
             for entry in querdata:
-                if entry[1].lower() in hname:
+                if hname in entry[1].lower():
                     print(entry[0], '|', entry[1], '| $', entry[2], '|', entry[3], '|', entry[4], '|', entry[5][:60])
                     return
         except:
@@ -35,7 +35,6 @@ def searchHotel():
     if selection == 2:
         lprange = int(input("Enter the lower price range($): "))
         hprange = int(input("Enter the higher price range($): "))
-        # chalena yesari
         #search_comm='''SELECT * FROM hotels where price between lprange and hprange'''
         try:
             search_comm = '''SELECT * FROM hotels'''
@@ -64,8 +63,6 @@ def searchHotel():
 
     if selection == 4:
         desloc = input("Enter the location of the hotel you want displayed: ").lower()
-        # yesari ni chalena
-        #search_comm='''SELECT * FROM  hotels where location like 'desloc%' '''
         try:
             search_comm = '''SELECT * FROM hotels'''
             querdata = curr.execute(search_comm)
